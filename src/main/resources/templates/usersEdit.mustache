@@ -1,0 +1,25 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<title>Edit users:</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+Edit users:
+
+<form action="/users" method="POST">
+	<input type="hidden" value="{{_csrf.token}}" name="_csrf">
+	<label>Change username:
+		<input type="text" name="username" value="{{user.username}}"/>
+	</label>
+	<span>Current roles: {{user.roles}}</span>
+	<br/>
+	<span>Select new roles: </span>
+	{{#roles}}
+		<label><input type="checkbox" name="{{.}}" >{{.}}</label>
+	{{/roles}}
+	<input type="hidden" value="{{user.id}}" name="userId">
+	<input type="submit" value="Save" />
+</form>
+</body>
+</html>

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Registration Page</title>
+</head>
+<body>
+Sign up:
+<br/>
+{{#message}}
+	{{message}}
+{{/message}}
+<form action="/registration" method="POST">
+	<input type="text" name="username" placeholder="Username"/>
+	<br/>
+	<input type="password" name="password" placeholder="Password"/>
+	<br/>
+	<input type="submit" value="Register"/>
+	<input type="hidden" name="_csrf" value="{{_csrf.token}}">
+</form>
+</body>
+</html>

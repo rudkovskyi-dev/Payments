@@ -1,0 +1,13 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<title>Main Page</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+</head>
+<body>
+<form action="/logout" method="POST">
+	<input type="hidden" name="_csrf" value="{{_csrf.token}}">
+	<input type="submit" value="Log Out">
+</form>
+</body>
+</html>
