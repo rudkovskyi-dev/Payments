@@ -11,5 +11,37 @@
 	<input type="hidden" name="_csrf" value="{{_csrf.token}}">
 	<input type="submit" value="Log Out">
 </form>
+<p>
+{{#balances}}
+	<div>
+		<b>{{id}}</b>
+		<span>{{name}}</span>
+		<i>{{doubleAmount}}</i>
+		<span>
+			{{#isAdmin}}
+				<a href="/u/{{user.id}}/edit?balance={{id}}">Edit</a>
+			{{/isAdmin}}
+		</span>
+		<strong>
+			{{^isLocked}}
+				{{^isAdmin}}
+					<a href="/u/{{user.id}}/lock?balance={{id}}"><b>LOCK</b></a>
+				{{/isAdmin}}
+			{{/isLocked}}
+			{{#isLocked}}
+				<span>LOCKED</span>
+				{{#isRequested}}
+					<b>Unlock requested!</b>
+				{{/isRequested}}
+				{{^isAdmin}}
+					{{^isRequested}}
+						<a href="/u/{{user.id}}/request?balance={{id}}">Request unlock</a>
+					{{/isRequested}}
+				{{/isAdmin}}
+			{{/isLocked}}
+		</strong>
+	</div>
+{{/balances}}
+</p>
 </body>
 </html>

@@ -1,38 +1,40 @@
 package ua.rudkovskyi.project.controller;
 
-import com.sun.corba.se.spi.ior.ObjectKey;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.lang.NonNull;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import ua.rudkovskyi.project.domain.Balance;
 import ua.rudkovskyi.project.domain.Role;
 import ua.rudkovskyi.project.domain.User;
+import ua.rudkovskyi.project.repo.BalanceRepo;
 import ua.rudkovskyi.project.repo.UserRepo;
 
-import java.util.Arrays;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import static java.lang.Math.round;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @Controller
 @RequestMapping("/u")
 public class BalanceController {
     UserRepo userRepo;
+    BalanceRepo balanceRepo;
 
     @Autowired
     private void setUserRepo(UserRepo userRepo) {
         this.userRepo = userRepo;
     }
 
+    @Autowired
+    private void setBalanceRepo(BalanceRepo balanceRepo){
+        this.balanceRepo = balanceRepo;
+    }
+
     @GetMapping("{user}")
-    public String balance(@PathVariable User user) {
+    public String balance(@PathVariable User user, Model model) {
         if (user==null) {
             throw new ResponseStatusException(NOT_FOUND, "Unable to find resource");
         }
@@ -47,13 +49,98 @@ public class BalanceController {
                 break;
             }
         }
-
         if (!auth.getName().equals(user.getUsername())) {
             if (!isAllowed) {
                 throw new ResponseStatusException(NOT_FOUND, "Unable to find resource");
             }
         }
+        Iterable<Balance> balances = balanceRepo.findByOwner(user);
+        model.addAttribute("isAdmin", isAllowed);
+        model.addAttribute("balances", balances);
 
         return "balance";
+    }
+
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @GetMapping("{user}/new")
+    public String newBalance(@PathVariable User user) {
+        if (user==null) {
+            throw new ResponseStatusException(NOT_FOUND, "Unable to find resource");
+        }
+        return "newBalance";
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @PostMapping("{user}/new")
+    public String createBalance(@PathVariable User user,
+                              @RequestParam String name,
+                              @RequestParam Double amount,
+                              Model model) {
+        if (user==null) {
+            throw new ResponseStatusException(NOT_FOUND, "Unable to find resource");
+        }
+        amount*=100;
+        Balance balance = new Balance(name, amount.longValue(), user);
+        balanceRepo.save(balance);
+        return "redirect:/u/"+user.getId();
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @GetMapping("{user}/edit")
+    public String editBalance(@PathVariable User user,
+                              @RequestParam Balance balance,
+                              Model model) {
+        if (user==null) {
+            throw new ResponseStatusException(NOT_FOUND, "Unable to find resource");
+        }
+        model.addAttribute("balance", balance);
+        return "editBalance";
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @PostMapping("{user}")
+    public String updateBalance(@PathVariable User user,
+                                @RequestParam("balanceId") Balance balance,
+                                @RequestParam String name,
+                                @RequestParam Double doubleAmount,
+                                @RequestParam boolean isLocked) {
+        if (user==null) {
+            throw new ResponseStatusException(NOT_FOUND, "Unable to find resource");
+        }
+        balance.setName(name);
+        doubleAmount*=100;
+        balance.setAmount(round(doubleAmount));
+        balance.setLocked(isLocked);
+        if (!isLocked){
+            balance.setRequested(false);
+        }
+
+        balanceRepo.save(balance);
+        return "redirect:/u/"+user.getId();
+    }
+
+    @GetMapping("{user}/request")
+    public String requestUnlock(@PathVariable User user,
+                                @RequestParam Balance balance,
+                                Model model) {
+        if (user==null || balance.isRequested()) {
+            throw new ResponseStatusException(NOT_FOUND, "Unable to find resource");
+        }
+        balance.setRequested(true);
+        balanceRepo.save(balance);
+        return "redirect:/u/"+user.getId();
+    }
+
+    @GetMapping("{user}/lock")
+    public String lockBalance(@PathVariable User user,
+                                @RequestParam Balance balance,
+                                Model model) {
+        if (user==null || balance.isLocked()) {
+            throw new ResponseStatusException(NOT_FOUND, "Unable to find resource");
+        }
+        balance.setLocked(true);
+        balanceRepo.save(balance);
+        return "redirect:/u/"+user.getId();
     }
 }

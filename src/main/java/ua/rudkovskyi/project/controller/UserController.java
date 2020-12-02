@@ -7,6 +7,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import ua.rudkovskyi.project.domain.Role;
 import ua.rudkovskyi.project.domain.User;
+import ua.rudkovskyi.project.repo.BalanceRepo;
 import ua.rudkovskyi.project.repo.UserRepo;
 
 import java.util.Arrays;
@@ -19,10 +20,16 @@ import java.util.stream.Collectors;
 @RequestMapping("/users")
 public class UserController {
     private UserRepo userRepo;
+    private BalanceRepo balanceRepo;
 
     @Autowired
     private void setUserRepo(UserRepo userRepo){
         this.userRepo = userRepo;
+    }
+
+    @Autowired
+    private void setBalanceRepo(BalanceRepo balanceRepo){
+        this.balanceRepo = balanceRepo;
     }
 
     @GetMapping
