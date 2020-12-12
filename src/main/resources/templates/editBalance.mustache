@@ -8,14 +8,14 @@
 <p>Edit balance:</p>
 <form action="/u/{{user.id}}" method="POST">
 	<input type="hidden" value="{{_csrf.token}}" name="_csrf">
-	<input type="hidden" value="{{balance.id}}" name="balanceId">
+	<input type="hidden" value="{{balance.id}}" name="sourceId">
 	<br/>
 	<label>Change balance name:
 		<input type="text" name="name" value="{{balance.name}}"/>
 	</label>
 	<br/>
 	<label>Change balance amount:
-		<input type="text" name="doubleAmount" value="{{balance.doubleAmount}}"/>
+		<input type="number" step="0.01" name="doubleAmount" value="{{balance.doubleAmount}}"/>
 	</label>
 	<br/>
 	<label>

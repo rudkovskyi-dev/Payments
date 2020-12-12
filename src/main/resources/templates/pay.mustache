@@ -1,0 +1,30 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<title>Transactions</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+<p>Make payment:</p>
+<a href="/main">Main page</a>
+<form action="/logout" method="POST">
+	<input type="hidden" name="_csrf" value="{{_csrf.token}}">
+	<input type="submit" value="Log Out">
+</form>
+<p>Your current balance: {{balance.doubleAmount}}</p>
+<form action="/u/{{user.id}}/{{balance.id}}" method="POST">
+	<input type="hidden" value="{{_csrf.token}}" name="_csrf">
+	<input type="hidden" value="{{balance.id}}" name="sourceId">
+	<br/>
+	<label>Payment destination:
+		<input type="number" name="destinationId" required="required"/>
+	</label>
+	<br/>
+	<label>Amount:
+		<input type="number" step="0.01" name="doubleAmount" required="required"/>
+	</label>
+	<br/>
+	<input type="submit" value="Send Payment" />
+</form>
+</body>
+</html>

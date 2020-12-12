@@ -35,27 +35,10 @@ public class BalanceController {
 
     @GetMapping("{user}")
     public String balance(@PathVariable User user, Model model) {
-        if (user==null) {
-            throw new ResponseStatusException(NOT_FOUND, "Unable to find resource");
-        }
-
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-        User userFromDB = userRepo.findUserByUsername(auth.getName());
-        boolean isAllowed = false;
-        for (Role r : userFromDB.getRoles()) {
-            if ("ADMIN".equals(r.getAuthority())) {
-                isAllowed = true;
-                break;
-            }
-        }
-        if (!auth.getName().equals(user.getUsername())) {
-            if (!isAllowed) {
-                throw new ResponseStatusException(NOT_FOUND, "Unable to find resource");
-            }
-        }
+        boolean isAdmin = checkAuthorization(auth, user);
         Iterable<Balance> balances = balanceRepo.findByOwner(user);
-        model.addAttribute("isAdmin", isAllowed);
+        model.addAttribute("isAdmin", isAdmin);
         model.addAttribute("balances", balances);
 
         return "balance";
@@ -65,9 +48,8 @@ public class BalanceController {
     @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("{user}/new")
     public String newBalance(@PathVariable User user) {
-        if (user==null) {
-            throw new ResponseStatusException(NOT_FOUND, "Unable to find resource");
-        }
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        checkAuthorization(auth, user);
         return "newBalance";
     }
 
@@ -77,9 +59,8 @@ public class BalanceController {
                               @RequestParam String name,
                               @RequestParam Double amount,
                               Model model) {
-        if (user==null) {
-            throw new ResponseStatusException(NOT_FOUND, "Unable to find resource");
-        }
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        checkAuthorization(auth, user);
         amount*=100;
         Balance balance = new Balance(name, amount.longValue(), user);
         balanceRepo.save(balance);
@@ -91,9 +72,8 @@ public class BalanceController {
     public String editBalance(@PathVariable User user,
                               @RequestParam Balance balance,
                               Model model) {
-        if (user==null) {
-            throw new ResponseStatusException(NOT_FOUND, "Unable to find resource");
-        }
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        checkAuthorization(auth, user);
         model.addAttribute("balance", balance);
         return "editBalance";
     }
@@ -105,12 +85,11 @@ public class BalanceController {
                                 @RequestParam String name,
                                 @RequestParam Double doubleAmount,
                                 @RequestParam boolean isLocked) {
-        if (user==null) {
-            throw new ResponseStatusException(NOT_FOUND, "Unable to find resource");
-        }
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        checkAuthorization(auth, user);
         balance.setName(name);
         doubleAmount*=100;
-        balance.setAmount(round(doubleAmount));
+        balance.setAmount(doubleAmount.longValue());
         balance.setLocked(isLocked);
         if (!isLocked){
             balance.setRequested(false);
@@ -124,7 +103,9 @@ public class BalanceController {
     public String requestUnlock(@PathVariable User user,
                                 @RequestParam Balance balance,
                                 Model model) {
-        if (user==null || balance.isRequested()) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        checkAuthorization(auth, user);
+        if (balance.isRequested()) {
             throw new ResponseStatusException(NOT_FOUND, "Unable to find resource");
         }
         balance.setRequested(true);
@@ -136,11 +117,34 @@ public class BalanceController {
     public String lockBalance(@PathVariable User user,
                                 @RequestParam Balance balance,
                                 Model model) {
-        if (user==null || balance.isLocked()) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        checkAuthorization(auth, user);
+        if (balance.isLocked()) {
             throw new ResponseStatusException(NOT_FOUND, "Unable to find resource");
         }
         balance.setLocked(true);
         balanceRepo.save(balance);
         return "redirect:/u/"+user.getId();
+    }
+
+    public boolean checkAuthorization(Authentication auth, User user){
+        if (user==null) {
+            throw new ResponseStatusException(NOT_FOUND, "Unable to find resource");
+        }
+
+        User userFromDB = userRepo.findUserByUsername(auth.getName());
+        boolean isAdmin = false;
+        for (Role r : userFromDB.getRoles()) {
+            if ("ADMIN".equals(r.getAuthority())) {
+                isAdmin = true;
+                break;
+            }
+        }
+        if (!auth.getName().equals(user.getUsername())) {
+            if (!isAdmin) {
+                throw new ResponseStatusException(NOT_FOUND, "Unable to find resource");
+            }
+        }
+        return isAdmin;
     }
 }

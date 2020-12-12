@@ -1,0 +1,51 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<title>Transactions</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+<p>Current balance: {{balance.doubleAmount}}</p>
+<p>Transactions:</p>
+<a href="/main">Main page</a>
+<form action="/logout" method="POST">
+	<input type="hidden" name="_csrf" value="{{_csrf.token}}">
+	<input type="submit" value="Log Out">
+</form>
+<p>
+<table>
+	<thead>
+	<tr>
+		<th>Transaction Id</th>
+		<th>Source</th>
+		<th>Destination</th>
+		<th>Amount</th>
+		<th>Status</th>
+	</tr>
+	</thead>
+	<tbody>
+		{{#transactions}}
+			<tr>
+				<td><b>{{id}}</b></td>
+				<td><span>{{source.id}}</span></td>
+				<td><span>{{destination.id}}</span></td>
+				<td><i>{{doubleAmount}}</i></td>
+				<td><b>
+					{{#isSent}}
+						{{#isAdmin}}<a href="{{source.id}}/{{id}}">{{/isAdmin}}
+						Sent
+						{{#isAdmin}}</a>{{/isAdmin}}
+					{{/isSent}}
+					{{^isSent}}
+						{{#isAdmin}}<a href="{{source.id}}/{{id}}">{{/isAdmin}}
+						Prepared
+						{{#isAdmin}}</a>{{/isAdmin}}
+					{{/isSent}}
+				</b></td>
+			</tr>
+		{{/transactions}}
+	</tbody>
+</table>
+</p>
+</body>
+</html>

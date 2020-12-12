@@ -1,0 +1,43 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<title>Transaction Info</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<p>
+<a href="/main">Main page</a>
+<form action="/logout" method="POST">
+	<input type="hidden" name="_csrf" value="{{_csrf.token}}">
+	<input type="submit" value="Log Out">
+</form>
+<p>Transaction info:</p>
+<p>
+	<a href="/u/{{transaction.source.owner.id}}/{{transaction.source.id}}">
+		Source id: {{balance.id}};
+	</a>
+</p>
+<p>Transaction amount: <b>{{transaction.doubleAmount}}</b></p>
+<p>
+	<a href="/u/{{transaction.destination.owner.id}}/{{transaction.destination.id}}">
+		Destination id: {{transaction.destination.id}}
+	</a>
+</p>
+{{^transaction.isSent}}
+	<p><b>Transaction won't be complete if source is locked or doesn't have enough funds</b></p>
+	<p>Balance status: <b>{{#balance.isLocked}}LOCKED{{/balance.isLocked}}{{^balance.isLocked}}UNLOCKED{{/balance.isLocked}}</b></p>
+	<p>Source current balance: <b>{{balance.doubleAmount}}</b></p>
+	<form action="/u/{{user.id}}/{{balance.id}}/{{transaction.id}}" method="POST">
+		<input type="hidden" value="{{_csrf.token}}" name="_csrf">
+		<input type="submit" value="Approve Transaction" />
+	</form>
+	<form action="/u/{{user.id}}/{{balance.id}}/{{transaction.id}}" method="POST">
+		<input type="hidden" value="{{_csrf.token}}" name="_csrf">
+		<input type="hidden" value="DELETE" name="_method">
+		<input type="submit" value="Delete Transaction" />
+	</form>
+{{/transaction.isSent}}
+{{#transaction.isSent}}
+	<p><b>Transaction has been successful!</b></p>
+{{/transaction.isSent}}
+</body>
+</html>

@@ -5,17 +5,19 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 </head>
 <body>
-<p>Balances:</p>
 <a href="/main">Main page</a>
 <form action="/logout" method="POST">
 	<input type="hidden" name="_csrf" value="{{_csrf.token}}">
 	<input type="submit" value="Log Out">
 </form>
+<p>Balances:</p>
 <p>
 {{#balances}}
 	<div>
 		<b>{{id}}</b>
-		<span>{{name}}</span>
+		<span>
+			<a href="/u/{{user.id}}/{{id}}">{{name}}</a>
+		</span>
 		<i>{{doubleAmount}}</i>
 		<span>
 			{{#isAdmin}}
@@ -26,6 +28,7 @@
 			{{^isLocked}}
 				{{^isAdmin}}
 					<a href="/u/{{user.id}}/lock?balance={{id}}"><b>LOCK</b></a>
+					<a href="/u/{{user.id}}/{{id}}/pay">Make payment</a>
 				{{/isAdmin}}
 			{{/isLocked}}
 			{{#isLocked}}
